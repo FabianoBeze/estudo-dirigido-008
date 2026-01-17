@@ -1,0 +1,86 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%; /* Garante que o container ocupe toda a largura */
+}
+
+.dashboard-content {
+  flex-grow: 1; /* Permite que o conteúdo do dashboard ocupe o espaço restante */
+  margin-left: 200px; /* Empurra o conteúdo para o lado, dando espaço à sidebar */
+  padding: 40px 20px; /* Adiciona padding interno para espaçamento do conteúdo */
+  transition: margin-left 0.3s ease; /* Transição suave ao abrir/fechar a sidebar (em mobile) */
+  
+  /* Removido: max-width e margin: auto, pois estavam causando conflito com o layout flex */
+  /* max-width: calc(100% - 200px); */
+  /* margin: 40px auto; */
+
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-content h1 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+.welcome-message {
+  text-align: center;
+  color: #34495e;
+  font-size: 1.2em;
+  margin-bottom: 25px;
+}
+
+.bens-list-section h2 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.8em;
+  text-align: center;
+}
+
+.bens-list {
+  list-style: none;
+  padding: 0;
+}
+
+.bem-item {
+  background-color: #ecf0f1;
+  border: 1px solid #bdc3c7;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bem-item strong {
+  color: #34495e;
+}
+
+.loading-message, .error-message {
+  text-align: center;
+  font-size: 1.1em;
+  margin-top: 20px;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* Media Queries para Mobile-First */
+@media (max-width: 768px) {
+  .dashboard-content {
+    margin-left: 0; /* Em mobile, o conteúdo não tem margem fixa, pois a sidebar se sobrepõe */
+    padding: 20px; /* Ajusta o padding para telas menores */
+  }
+
+  /* A regra .sidebar.open + .dashboard-content não é necessária aqui,
+     pois a sidebar fixa se sobrepõe ao conteúdo em mobile quando aberta. */
+}
