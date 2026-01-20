@@ -180,7 +180,7 @@ function Dashboard() {
 
 
 
-          <div className="card" onClick={() => handleCardClick(unidades[0])} style={{ cursor: 'pointer' }}> {/* Adicionado onClick e cursor */}
+          <div className="card" onClick={() => handleCardClick(unidades[0], salas[0])} style={{ cursor: 'pointer' }}> {/* Adicionado onClick e cursor */}
             <div className="card-icon" style={{background: '#dcfce7', color: '#16a34a'}}>
                 <FaBuilding />
             </div>
