@@ -16,7 +16,7 @@ function AddGestor() {
     pode_dar_baixa: false, // Nova permissão
     pode_cadastrar_unidade: false, // Nova permissão
     pode_cadastrar_categoria: false, // Nova permissão
-    pode_cadastrar_sala: false, // Nova permissão
+        pode_cadastrar_sala: false, // Nova permissão
     pode_cadastrar_gestor: false, // Nova permissão
   });
 

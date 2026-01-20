@@ -83,13 +83,4 @@ class Gestor(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.nome} - {self.unidade.nome}"
-
-class Sala(models.Model):
-    nome = models.CharField(max_length=100)
-    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT)
-    
-    criado_em = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.nome} ({self.unidade.nome})"
+        return self.nome

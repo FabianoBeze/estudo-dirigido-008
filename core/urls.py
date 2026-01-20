@@ -1,4 +1,4 @@
-from django.contrib import admin # Esta linha pode ser removida se não for usada em outro lugar neste arquivo
+from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import UnidadeViewSet, CategoriaViewSet, BemViewSet, GestorViewSet, SalaViewSet # Adicione SalaViewSet aqui
@@ -11,5 +11,6 @@ router.register(r'gestores', GestorViewSet)
 router.register(r'salas', SalaViewSet) # Adicione esta linha
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
 ]
