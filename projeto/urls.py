@@ -7,6 +7,8 @@ from core.views import (
     UnidadeViewSet, 
     CategoriaViewSet, 
     BemViewSet, 
+    SalaViewSet,
+    GestorViewSet,
     dashboard_resumo  # <--- O import do Dashboard que faltava
 )
 
@@ -21,6 +23,10 @@ router = DefaultRouter()
 router.register(r'unidades', UnidadeViewSet)
 router.register(r'categorias', CategoriaViewSet)
 router.register(r'bens', BemViewSet)
+router.register(r'salas', SalaViewSet)
+router.register(r'gestores', GestorViewSet) 
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

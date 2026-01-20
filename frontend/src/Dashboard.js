@@ -9,6 +9,9 @@ function Dashboard() {
   const [bens, setBens] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [salas, setSalas] = useState([]);
+  const [bensPorSala, setBensPorSala] = useState({});
+  const [loadingSalas, setLoadingSalas] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showUnidadesModal, setShowUnidadesModal] = useState(false); // Novo estado para controlar a visibilidade do modal
   const [selectedUnidade, setSelectedUnidade] = useState(null); // Novo estado para armazenar a unidade selecionada
@@ -18,60 +21,88 @@ function Dashboard() {
   };
 
   // Função para abrir o modal de unidades
-  const handleCardClick = (unidade) => {
+  const handleCardClick = async(unidade) => {
     setSelectedUnidade(unidade);
     setShowUnidadesModal(true);
+    setLoadingSalas(true);
+    setSalas([]);
+    setBensPorSala({});
+
+    const token = localStorage.getItem('access_token');
+
+    try {
+      const res = await axios.get(
+        `http://127.0.0.1:8000/api/unidades/${unidade?.id || 1}/salas/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalas(res.data);
+    } catch (error) {
+      console.error("Erro ao carregar salas", error);
+    } finally {
+      setLoadingSalas(false);
+    }
+
   };
 
   // Função para fechar o modal
   const handleCloseModal = () => {
     setShowUnidadesModal(false);
     setSelectedUnidade(null);
+    setSalas([]);
+    setBensPorSala({});
+    
+  };
+
+  const carregarBensDaSala = async (salaId) => {
+    if (bensPorSala[salaId]) return;
+
+    const token = localStorage.getItem('access_token');
+
+    try {
+      const res = await axios.get(
+        `http://127.0.0.1:8000/api/salas/${salaId}/bens/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setBensPorSala(prev => ({
+        ...prev,
+        [salaId]: res.data
+      }));
+    } catch (error) {
+      console.error("Erro ao carregar bens da sala", error);
+    }
   };
 
   useEffect(() => {
-    // Interceptor para lidar com tokens expirados
     axios.interceptors.response.use(
       response => response,
       async error => {
         const originalRequest = error.config;
-        // Se o erro for 401 e não for uma tentativa de refresh token
-        if (error.response.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true; // Marca a requisição como retentativa
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
           const refreshToken = localStorage.getItem('refresh_token');
 
           if (refreshToken) {
-            try {
-              const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
-                refresh: refreshToken
-              });
-
-              const newAccessToken = response.data.access;
-              localStorage.setItem('access_token', newAccessToken);
-              axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-              originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-              return axios(originalRequest); // Repete a requisição original com o novo token
-            } catch (refreshError) {
-              // Se o refresh token também falhar, desloga o usuário
-              console.error("Erro ao renovar o token:", refreshError);
-              localStorage.removeItem('access_token');
-              localStorage.removeItem('refresh_token');
-              window.location.href = '/login'; // Redireciona para a página de login
-              return Promise.reject(refreshError);
-            }
-          } else {
-            // Se não houver refresh token, desloga o usuário
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/login'; // Redireciona para a página de login
+            const res = await axios.post(
+              'http://127.0.0.1:8000/api/token/refresh/',
+              { refresh: refreshToken }
+            );
+            localStorage.setItem('access_token', res.data.access);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+            originalRequest.headers['Authorization'] = `Bearer ${res.data.access}`;
+            return axios(originalRequest);
           }
+
+          window.location.href = '/login';
         }
+
         return Promise.reject(error);
       }
     );
 
     const token = localStorage.getItem('access_token');
-    const config = { headers: { 'Authorization': `Bearer ${token}` } };
+    const config = { headers: { Authorization: `Bearer ${token}` } };
 
     axios.get('http://127.0.0.1:8000/api/bens/', config).then(res => setBens(res.data));
     axios.get('http://127.0.0.1:8000/api/unidades/', config).then(res => setUnidades(res.data));
@@ -90,10 +121,10 @@ function Dashboard() {
       return acc + (isNaN(valorNumerico) ? 0 : valorNumerico);
   }, 0);
 
-  const dadosGrafico = categorias.map(cat => {
-    const qtd = bensAtivos.filter(b => b.categoria === cat.id).length;
-    return { name: cat.nome, value: qtd };
-  }).filter(item => item.value > 0);
+  const dadosGrafico = categorias.map(cat => ({
+    name: cat.nome,
+    value: bensAtivos.filter(b => b.categoria === cat.id).length
+  })).filter(item => item.value > 0);
 
   const CORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -107,6 +138,7 @@ function Dashboard() {
   return (
     <div className={`dashboard-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <Sidebar isCollapsed={isSidebarCollapsed} toggleCollapse={toggleSidebar} /> {/* Passa as props */}
+      
       <main className={`content ${isSidebarCollapsed ? 'content-expanded' : ''}`}> {/* Aplica classe condicional */}
         
         <div className="page-header">
@@ -138,7 +170,7 @@ function Dashboard() {
         <div className="cards-container">
           <div className="card">
             <div className="card-icon" style={{background: '#e0f2fe', color: '#0284c7'}}>
-                <FaBox />
+                <FaBox /> 
             </div>
             <div className="card-info">
                 <span>Total de Bens</span>
@@ -146,7 +178,9 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="card" onClick={() => handleCardClick(null)} style={{ cursor: 'pointer' }}> {/* Adicionado onClick e cursor */}
+
+
+          <div className="card" onClick={() => handleCardClick(unidades[0])} style={{ cursor: 'pointer' }}> {/* Adicionado onClick e cursor */}
             <div className="card-icon" style={{background: '#dcfce7', color: '#16a34a'}}>
                 <FaBuilding />
             </div>
@@ -234,7 +268,7 @@ function Dashboard() {
                                 </td>
                                 <td>{bem.nome}</td>
                                 <td>
-                                    {unidades.find(u => u.id == bem.unidade)?.nome || '...'}
+                                    {unidades.find(u => u.id === bem.unidade)?.nome ||  '...'}
                                 </td>
                                 <td>
                                     {bem.data_baixa ? 
